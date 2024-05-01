@@ -32,6 +32,7 @@ def visual_analysis_categorical(df):
     plt.show()
 
 
+"""
 def outlier_removal_analysis_accommodates(df):
     outlier_removal_analysis_bar(df, "accommodates", suptitle="Outlier Removal Accommodates")
 
@@ -42,6 +43,16 @@ def outlier_removal_analysis_review_scores_rating(df):
 
 def outlier_removal_analysis_host_response_rate(df):
     outlier_removal_analysis_hist(df, "host_response_rate", suptitle="Outlier Removal Analysis Host Response Rate")
+"""
+
+def outlier_removal_graphs(df):
+    outlier_removal_analysis_bar(df, "bathrooms", suptitle="Outlier Removal Bathrooms")
+    outlier_removal_analysis_bar(df, "beds", suptitle="Outlier Removal Beds")
+    outlier_removal_analysis_bar(df, "bedrooms", suptitle="Outlier Removal Bedrooms")
+    outlier_removal_analysis_bar(df, "accommodates", suptitle="Outlier Removal Accommodates")
+    outlier_removal_analysis_hist(df, "review_scores_rating", suptitle="Outlier Removal Review Scores Rating")
+    outlier_removal_analysis_hist(df, "host_response_rate", suptitle="Outlier Removal Analysis Host Response Rate")
+    
 
 
 def scatter_host_response_rate(df):
@@ -64,21 +75,28 @@ def scatter_review_scores_rating(df):
     plt.show()
 
 
-def box_plot(df, column):
-   
-    df.boxplot(column="log_price", by=column)
-    #plt.suptitle(f"log_price vs {column}")
-    plt.show()
+def box_plots(df):
+    handle_all_outliers(df)
+    handle_null_values(df)
+    categorical_columns = ["beds", "bedrooms", "bathrooms", "accommodates", "cancellation_policy", "host_identity_verified", "instant_bookable", "cleaning_fee"]
+    #fig, plot_canvas = plt.subplots(nrows=7, ncols=1)
+    for i, column in enumerate(categorical_columns):
+        df.boxplot(column="log_price", by=column, figsize=(10,5))
+        plt.show()
+    
 
 
 if __name__ == "__main__":
     df = get_formatted_dataframe()
+    #handle_all_outliers(df)
+    handle_null_values(df)
     #outlier_removal_analysis_accommodates(df)
     #outlier_removal_analysis_review_scores_rating(df)
-    outlier_removal_analysis_host_response_rate(df)
+    #outlier_removal_analysis_host_response_rate(df)
     #log_price_distribution(df)
     #continous_dist3(df)
     #visual_analysis_categorical(df)
     #scatter_last_review(df)
     #scatter_review_scores_rating(df)
-    #box_plot(df, "beds")
+    box_plots(df)
+    #outlier_removal_graphs(df)

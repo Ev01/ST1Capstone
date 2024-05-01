@@ -88,6 +88,12 @@ def handle_all_outliers(df):
     outliers_to_limit(df, "host_response_rate")
     outliers_to_limit(df, "review_scores_rating")
     outliers_to_limit(df, "accommodates")
+    outliers_to_limit(df, "beds")
+    outliers_to_limit(df, "bedrooms")
+    outliers_to_limit(df, "bathrooms")
+
+
+
 
 
 def fill_na_with_mode(df, attribute):
