@@ -163,10 +163,33 @@ def handle_all_outliers():
     outliers_to_limit("accommodates")
 
 
-def fill_na_with_mean(attribute):
-    mean = df[attribute].mean()
-    df[attribute].fillna(mean, inplace=True)
+def fill_na_with_mode(attribute):
+    mode = df[attribute].mode()[0]
+    df.fillna({attribute: mode}, inplace=True)
 
 def fill_na_with_median(attribute):
     median = df[attribute].median()
-    df[attribute].fillna(median, inplace=True)
+    #df[attribute] = df[attribute].fillna(value=median)
+    df.fillna({attribute: median}, inplace=True)
+
+
+def dropna_in_column(attribute):
+    df.dropna(subset=[attribute], inplace=True)
+
+
+def handle_null_values():
+    dropna_in_column("first_review")
+    dropna_in_column("last_review")
+    dropna_in_column("review_scores_rating")
+    dropna_in_column("host_response_rate")
+
+    fill_na_with_mode("bathrooms")
+    fill_na_with_mode("host_identity_verified")
+    fill_na_with_mode("bedrooms")
+    fill_na_with_mode("beds")
+    fill_na_with_median("host_since")
+
+
+print(df.info())
+handle_null_values()
+print(df.info())
