@@ -18,8 +18,6 @@ def continous_dist2(df):
     to_plot = ["host_since", "last_review", "first_review"]
     plot_year_bargraphs(df, to_plot, 2, 2)
     plt.show()
-    #df["host_since"].groupby(df["host_since"].dt.year).count().plot(kind="bar")
-    #plt.show()
 
 
 def continous_dist3(df):
@@ -46,11 +44,41 @@ def outlier_removal_analysis_host_response_rate(df):
     outlier_removal_analysis_hist(df, "host_response_rate", suptitle="Outlier Removal Analysis Host Response Rate")
 
 
+def scatter_host_response_rate(df):
+    df.plot.scatter(x="host_response_rate", y="log_price")
+    plt.show()
+
+
+def scatter_first_review(df):
+    df.plot.scatter(x="first_review", y="log_price")
+    plt.show()
+
+
+def scatter_last_review(df):
+    df.plot.scatter(x="last_review", y="log_price")
+    plt.show()
+
+
+def scatter_review_scores_rating(df):
+    df.plot.scatter(x="review_scores_rating", y="log_price")
+    plt.show()
+
+
+def box_plot(df, column):
+   
+    df.boxplot(column="log_price", by=column)
+    #plt.suptitle(f"log_price vs {column}")
+    plt.show()
+
+
 if __name__ == "__main__":
     df = get_formatted_dataframe()
     #outlier_removal_analysis_accommodates(df)
     #outlier_removal_analysis_review_scores_rating(df)
-    #outlier_removal_analysis_host_response_rate(df)
+    outlier_removal_analysis_host_response_rate(df)
     #log_price_distribution(df)
     #continous_dist3(df)
     #visual_analysis_categorical(df)
+    #scatter_last_review(df)
+    #scatter_review_scores_rating(df)
+    #box_plot(df, "beds")

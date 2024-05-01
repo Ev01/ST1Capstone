@@ -114,3 +114,5 @@ def handle_null_values(df):
     fill_na_with_mode(df, "bedrooms")
     fill_na_with_mode(df, "beds")
     fill_na_with_median(df, "host_since")
+
+
