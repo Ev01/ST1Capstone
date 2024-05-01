@@ -63,7 +63,7 @@ def get_outlier_upper_limit_sd(series):
     return series.mean() + series.std() * 3
 
 def get_outlier_lower_limit_sd(series):
-    series.mean() - series.std() * 3
+    return series.mean() - series.std() * 3
 
 
 def get_outlier_limits_iqr(series):
@@ -105,23 +105,68 @@ def get_outliers_iqr(series):
     return series.loc[is_outlier_iqr(series)]
 
 
-def outliers_to_upper_limit(attribute):
-    upper_limit = int(get_outlier_upper_limit_sd(df[attribute]))
-    df.loc[is_outlier_sd(df[attribute]), attribute] = upper_limit
+def outliers_to_limit(series_name):
+    upper_limit = int(get_outlier_upper_limit_sd(df[series_name]))
+    lower_limit = int(get_outlier_lower_limit_sd(df[series_name]))
+    df.loc[is_outlier_sd(df[series_name]) & (df[series_name] > df[series_name].mean()), series_name] = upper_limit
+    df.loc[is_outlier_sd(df[series_name]) & (df[series_name] < df[series_name].mean()), series_name] = upper_limit
 
 
-print(get_outliers_sd(df["beds"]))
+def plot_before_after(series_before, series_after, kind="bar", suptitle=""):
+    plt.subplot(1, 2, 1)
+    series_before.plot(kind=kind)
+    plt.xlabel("Before")
+    plt.subplot(1, 2, 2)
+    series_after.plot(kind=kind)
+    plt.xlabel("After")
+    plt.suptitle(suptitle)
 
 
-before = df["accommodates"].copy()
-outliers_to_upper_limit("accommodates")
-#df["accommodates"] = np.log(df["accommodates"])
 
-plt.subplot(1, 2 ,1)
-before.value_counts().sort_index().plot(kind="bar")
-plt.xlabel("Before")
-plt.subplot(1, 2, 2)
-df["accommodates"].value_counts().sort_index().plot(kind="bar")
-#df["accommodates"].plot(kind="hist", bins=15)
-plt.xlabel("After")
-plt.show()
+def outlier_removal_analysis_bar(series_name, suptitle=""):
+    before = df[series_name].copy()
+    outliers_to_limit(series_name)
+    plot_before_after(before.value_counts().sort_index(), 
+                      df[series_name].value_counts().sort_index(), 
+                      kind="bar", 
+                      suptitle=suptitle)
+    
+    plt.show()
+
+
+def outlier_removal_analysis_hist(series_name, suptitle=""):
+    before = df[series_name].copy()
+    outliers_to_limit(series_name)
+    plot_before_after(before, 
+                      df[series_name], 
+                      kind="hist", 
+                      suptitle=suptitle)
+
+    plt.show()
+
+
+def outlier_removal_analysis_accommodates():
+    outlier_removal_analysis_bar("accommodates", suptitle="Outlier Removal Accommodates")
+
+
+def outlier_removal_analysis_review_scores_rating():
+    outlier_removal_analysis_hist("review_scores_rating", suptitle="Outlier Removal Review Scores Rating")
+
+
+def outlier_removal_analysis_host_response_rate():
+    outlier_removal_analysis_hist("host_response_rate", suptitle="Outlier Removal Analysis Host Response Rate")
+
+
+def handle_all_outliers():
+    outliers_to_limit("host_response_rate")
+    outliers_to_limit("review_scores_rating")
+    outliers_to_limit("accommodates")
+
+
+def fill_na_with_mean(attribute):
+    mean = df[attribute].mean()
+    df[attribute].fillna(mean, inplace=True)
+
+def fill_na_with_median(attribute):
+    median = df[attribute].median()
+    df[attribute].fillna(median, inplace=True)
