@@ -11,7 +11,8 @@ from sklearn.model_selection import cross_val_score
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import AdaBoostRegressor
-
+import pickle
+import os
 
 import analysis
 import handle_data
@@ -30,11 +31,15 @@ def ml_preprocess(df):
     df.loc[(df["cancellation_policy"] == "super_strict_30") | (df["cancellation_policy"] == "super_strict_60"), "cancellation_policy"] = "strict"
 
     predictors = analysis.get_correlated_predictors()
+    
+    # Remove all columns that are not a selected predictor or target variable
     df = df[[*predictors, "log_price"]]
-    #print(list(df["cleaning_fee"].unique()))
+    
+    # Convert string values to numeric values
     categorical_to_numeric(df, "cancellation_policy", ["flexible", "moderate", "strict"])
     categorical_to_numeric(df, "host_identity_verified", ["f" , "t"])
     categorical_to_numeric(df, "instant_bookable", ["f", "t"])
+    
     # Convert cleaning fee from boolean to numeric
     df["cleaning_fee"] = df["cleaning_fee"].astype(int)
 
@@ -66,25 +71,25 @@ def standardise_values(X):
     return X
 
 
-def get_xy_data():
+
+def get_processed_dataframe():
     df = handle_data.get_formatted_dataframe()
     handle_data.handle_all_outliers(df)
     handle_data.handle_null_values(df)
     df, predictors = ml_preprocess(df)
+
+    return df
+
+
+def get_xy_data():
+    df = get_processed_dataframe()
+    predictors = analysis.get_correlated_predictors()
     target_variable = "log_price"
 
     X = df[predictors].values
     y = df[target_variable].values
 
     X = standardise_values(X)
-    
-    # Split the data into training and testing set
-    #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
-    # Sanity check for the sampled data
-    #print(X_train.shape)
-    #print(y_train.shape)
-    #print(X_test.shape)
-    #print(y_test.shape)
 
     return X, y, predictors, target_variable
 
@@ -178,8 +183,51 @@ def test_models():
     """
 
 
+def test_final_model():
+    # The most important predictors based on the results of plot_feature_importance()
+    important_predictors = ["bedrooms", "accommodates", "bathrooms"]
+    # The tree regressor was the most accurate out of the ones tested
+    reg_model = DecisionTreeRegressor(max_depth=5,criterion='friedman_mse')
+    target_variable = "log_price"
+
+    df = get_processed_dataframe()
+    # Only keep the important predictors
+    df = df[[*important_predictors, target_variable]]
+    X = df[important_predictors].values
+    y = df[target_variable].values
+
+    X = standardise_values(X)
+    evaluate_model_accuracy(reg_model, X, y, important_predictors, target_variable)
+
+
+
+def train_final_model():
+    important_predictors = ["bedrooms", "accommodates", "bathrooms"]
+    # The tree regressor was the most accurate out of the ones tested
+    reg_model = DecisionTreeRegressor(max_depth=5,criterion='friedman_mse')
+    target_variable = "log_price"
+
+    df = get_processed_dataframe()
+    # Only keep the important predictors
+    df = df[[*important_predictors, target_variable]]
+    X = df[important_predictors].values
+    y = df[target_variable].values
+
+    X = standardise_values(X)
+
+    # Train model using all data
+    final_model = reg_model.fit(X, y)
+    return final_model
+
+
+def save_model_to_file(model):
+    with open('final_model.pkl', 'wb') as file:
+        pickle.dump(model, file)
 
 
 if __name__ == "__main__":
     #test_models()
-    plot_feature_importance()
+    #plot_feature_importance()
+    #test_final_model()
+    final_model = train_final_model()
+    save_model_to_file(final_model)
