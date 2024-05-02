@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import json
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.linear_model import LinearRegression
@@ -226,6 +227,7 @@ def save_model_to_file(model):
 
 
 def predict_result(input_data):
+    """Return a dataframe with multiple predictions of log_price from the input data."""
     predictors = ["bedrooms", "accommodates", "bathrooms"]
     X = input_data[predictors]
     X = standardise_values(X)
@@ -239,6 +241,15 @@ def predict_result(input_data):
     return prediction_result
 
 
+def generate_prediction(bedrooms, accommodates, bathrooms):
+    """Return a JSON string with a single prediction."""
+    input_data = pd.DataFrame(data=[[bedrooms, accommodates, bathrooms]], columns=["bedrooms", "accommodates", "bathrooms"])
+    predictions = predict_result(input_data)
+    # Return the first (and only) prediction
+    d = {"Prediction": float(predictions.values[0])}
+    return json.dumps(d)
+
+
 def test_sample_data():
     sample_data = pd.DataFrame(data = [[3, 4, 2], [1, 1, 1], [4, 6, 2.5]], columns=["bedrooms", "accommodates", "bathrooms"])
     print(predict_result(sample_data))
@@ -250,4 +261,5 @@ if __name__ == "__main__":
     #test_final_model()
     #final_model = train_final_model()
     #save_model_to_file(final_model)
-    test_sample_data()
+    #test_sample_data()
+    generate_prediction(3, 2, 4)
