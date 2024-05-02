@@ -68,8 +68,6 @@ def is_outlier_sd(series):
     # Anything outside outside of three standard deviations is an outlier.
     upper_limit = get_outlier_upper_limit_sd(series)
     lower_limit = get_outlier_lower_limit_sd(series)
-    print(f"upper limit: {upper_limit}")
-    print(f"lower limit: {lower_limit}")
 
     outliers = (series >= upper_limit) | (series <= lower_limit)
     
