@@ -13,7 +13,6 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import AdaBoostRegressor
 import pickle
-import os
 
 import analysis
 import handle_data
@@ -56,18 +55,13 @@ def accuracy_score(orig, pred):
     return(100-MAPE)
 
 
-#def get_processed_data():
-
-#def ev
 
 def standardise_values(X):
-    # Choose either standardization or Normalization
-    # Choose between standardization and MinMAx normalization
+    # Both StandardScaler and MinMaxScaler give similar results
     #predictor_scaler = StandardScaler()
     predictor_scaler = MinMaxScaler()
-    # Storing the fit object for later reference
     predictor_scaler_fit = predictor_scaler.fit(X)
-    # Generating the standardized values of X
+    # Generate the standardized values of X
     X = predictor_scaler_fit.transform(X)
     return X
 
@@ -100,9 +94,6 @@ def get_xy_data():
 def evaluate_model_accuracy(reg_model, X, y, predictors, target_variable):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
 
-    #Multiple Linear Regression
-    #reg_model = LinearRegression()
-
     # Printing all the parameters of Linear regression
     print(reg_model)
 
@@ -130,10 +121,10 @@ def evaluate_model_accuracy(reg_model, X, y, predictors, target_variable):
     testing_data_results['APE'] = 100 * prediction_difference / testing_data_results[target_variable]
 
     mean_APE = np.mean(testing_data_results['APE'])
-    median_APE  =np.median(testing_data_results['APE'])
+    median_APE = np.median(testing_data_results['APE'])
 
     accuracy = 100 - mean_APE
-    median_accuracy= 100 - median_APE
+    median_accuracy = 100 - median_APE
     print('Mean Accuracy on test data:', accuracy) # Can be negative sometimes due to outlier
     print('Median Accuracy on test data:', median_accuracy)
 

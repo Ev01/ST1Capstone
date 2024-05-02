@@ -1,8 +1,4 @@
-from flask import Flask, request, jsonify
-import pickle
-import pandas as pd
-import numpy as np
-import os
+from flask import Flask, request
 
 from ml_preprocess import generate_prediction
 
@@ -14,8 +10,8 @@ def prediction_api():
     try:
         # Getting the paramters from API call
         bedrooms = float(request.args.get('bedrooms'))
-        bathrooms=float(request.args.get('bathrooms'))
-        accommodates=float(request.args.get('accommodates'))
+        bathrooms = float(request.args.get('bathrooms'))
+        accommodates = float(request.args.get('accommodates'))
 
         # Calling the funtion to get predictions
         prediction_from_api = generate_prediction(
@@ -27,7 +23,7 @@ def prediction_api():
         return prediction_from_api
 
     except Exception as e:
-        return('Something is not right!:'+str(e))
+        return('Error: ' + str(e))
 
 
 if __name__ =="__main__":
@@ -37,6 +33,5 @@ if __name__ =="__main__":
     '''
     Sample URL to call the API
     Copy and paste below URL in the web browser
-    [3, 4, 2]
     http://127.0.0.1:9000/prediction_api?bedrooms=3&accommodates=4&bathrooms=2
     '''
