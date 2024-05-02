@@ -6,7 +6,7 @@
 
 - run `graphs.py` to plot every graph that I have used in the main document. The next graph will only be shown after the window of the currently shown graph is closed.
 
-- run `flask_app.py` to start a web api that can predict new data. Copy and paste this url into a web browser to test it with some sample data: http://127.0.0.1:9000/prediction_api?bedrooms=3&accommodates=4&bathrooms=2
+- run `flask_api.py` to start a web api that can predict new data. Copy and paste this url into a web browser to test it with some sample data: http://127.0.0.1:9000/prediction_api?bedrooms=3&accommodates=4&bathrooms=2
 
 ## Contents of other files
 
