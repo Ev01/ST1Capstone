@@ -5,6 +5,7 @@ import numpy as np
 
 
 def get_formatted_dataframe():
+    """Reads the csv and cleans it up so that it can be graphed/analysed"""
     df = pd.read_csv("data.csv")
     # Remove any duplicate rows in the dataset
     df.drop_duplicates(inplace=True)
@@ -24,18 +25,21 @@ def get_formatted_dataframe():
 
 
 def print_null_percentage(df):
+    """Print the percentage of null values for each column in the dataframe."""
     # isnull converts values to 1 if they are null, or 0 if not null.
     print(df.isnull().mean() * 100)
 
 
 
 def get_outlier_upper_limit_sd(series):
+    # Any value above this number is considered an outlier
     return series.mean() + series.std() * 3
 
 def get_outlier_lower_limit_sd(series):
+    # Any value below this number is considered an outlier
     return series.mean() - series.std() * 3
 
-
+"""
 def get_outlier_limits_iqr(series):
     q3 = series.quantile(0.75)
     q1 = series.quantile(0.25)
@@ -44,6 +48,20 @@ def get_outlier_limits_iqr(series):
     upper_limit = q3 + iqr * 1.5
     return lower_limit, upper_limit
 
+    
+def is_outlier_iqr(series):
+    lower_limit, upper_limit = get_outlier_limits_iqr(series)
+    print(f"upper limit: {upper_limit}")
+    print(f"lower limit: {lower_limit}")
+
+    outliers = (series >= upper_limit) | (series <= lower_limit)
+    return outliers
+
+    
+
+def get_outliers_iqr(series):
+    return series.loc[is_outlier_iqr(series)]
+"""
 
 def is_outlier_sd(series):
     """Return a series with each value replaced with True if it is an outlier, or False if it isn't."""
@@ -58,36 +76,35 @@ def is_outlier_sd(series):
     return outliers
 
 
-def is_outlier_iqr(series):
-    lower_limit, upper_limit = get_outlier_limits_iqr(series)
-    print(f"upper limit: {upper_limit}")
-    print(f"lower limit: {lower_limit}")
-
-    outliers = (series >= upper_limit) | (series <= lower_limit)
-    return outliers
-
 
 def get_outliers_sd(series):
+    """Return the rows in the series that are outliers."""
     return series.loc[is_outlier_sd(series)]
 
 
-def get_outliers_iqr(series):
-    return series.loc[is_outlier_iqr(series)]
 
-
-def outliers_to_limit(df, series_name, convert_to_int=True):
-    upper_limit = get_outlier_upper_limit_sd(df[series_name])
-    lower_limit = get_outlier_lower_limit_sd(df[series_name])
+def outliers_to_limit(df, column, convert_to_int=True):
+    """
+    Use the winsorising method to convert all outliers in the column to the upper/lower limit.
+    
+    Setting convert_to_int to True will convert the upper and lower limits to ints. This should be 
+    used when the column is categorical.
+    """
+    upper_limit = get_outlier_upper_limit_sd(df[column])
+    lower_limit = get_outlier_lower_limit_sd(df[column])
     if convert_to_int:
         upper_limit = int(upper_limit)
         lower_limit = int(lower_limit)
 
-    df.loc[is_outlier_sd(df[series_name]) & (df[series_name] > df[series_name].mean()), series_name] = upper_limit
-    df.loc[is_outlier_sd(df[series_name]) & (df[series_name] < df[series_name].mean()), series_name] = lower_limit
+    # Convert any value that is an outlier above the mean to the upper limit
+    df.loc[is_outlier_sd(df[column]) & (df[column] > df[column].mean()), column] = upper_limit
+    # Convert any value that is an outlier below the mean to the lower limit
+    df.loc[is_outlier_sd(df[column]) & (df[column] < df[column].mean()), column] = lower_limit
 
 
 
 def handle_all_outliers(df):
+    """Handle the outliers for all columns that have outliers."""
     outliers_to_limit(df, "host_response_rate")
     outliers_to_limit(df, "review_scores_rating")
     outliers_to_limit(df, "accommodates")
@@ -96,23 +113,25 @@ def handle_all_outliers(df):
     outliers_to_limit(df, "bathrooms")
 
 
+def fill_na_with_mode(df, column):
+    """Replace all missing values in the column with the mode. This should be used for categorical variables."""
+    mode = df[column].mode()[0]
+    df.fillna({column: mode}, inplace=True)
+
+def fill_na_with_median(df, column):
+    """Replace all missing values in the column with the median. This should be used for continous variables."""
+    median = df[column].median()
+    df.fillna({column: median}, inplace=True)
 
 
-
-def fill_na_with_mode(df, attribute):
-    mode = df[attribute].mode()[0]
-    df.fillna({attribute: mode}, inplace=True)
-
-def fill_na_with_median(df, attribute):
-    median = df[attribute].median()
-    df.fillna({attribute: median}, inplace=True)
-
-
-def dropna_in_column(df, attribute):
-    df.dropna(subset=[attribute], inplace=True)
+def dropna_in_column(df, column):
+    """Drop all rows that have a missing value in the specified column."""
+    df.dropna(subset=[column], inplace=True)
 
 
 def handle_null_values(df):
+    """Converts any null values in the dataset to their column's mode or median."""
+
     # As we are not using these columns, we do not need to drop the invalid data anymore
     #dropna_in_column(df, "first_review")
     #dropna_in_column(df, "last_review")

@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.linear_model import LinearRegression
 from sklearn import metrics
 from sklearn.metrics import make_scorer
@@ -11,21 +11,20 @@ from sklearn.metrics import make_scorer
 from sklearn.model_selection import cross_val_score
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.ensemble import AdaBoostRegressor
 import pickle
 
 import analysis
 import handle_data
 
 
-def categorical_to_numeric(df, column, values_list):
-    """Converts each value in the values list to its index in the list, then applies this to the column."""
-    for i, value in enumerate(values_list):
+def categorical_to_numeric(df, column, unique_values):
+    """Convert each unique value in the column to its index in unique_values."""
+    for i, value in enumerate(unique_values):
         df.loc[df[column] == value, column] = i
 
 
 def ml_preprocess(df):
-    #df = handle_data.get_formatted_dataframe()
+    """Convert the values of all columns into numerical values."""
 
     # Convert all values of super_strict_30 or super_strict_60 in cancellation_policy to strict.
     df.loc[(df["cancellation_policy"] == "super_strict_30") | (df["cancellation_policy"] == "super_strict_60"), "cancellation_policy"] = "strict"
@@ -46,10 +45,8 @@ def ml_preprocess(df):
     return df, predictors
 
 
-
-# Defining a custom function to calculate accuracy
-# Make sure there are no zeros in the Target variable if you are using MAPE
 def accuracy_score(orig, pred):
+    """Calculate the accuracy of the predicted data based on the original. Intended to be used as a custom scoring function."""
     MAPE = np.mean(100 * (np.abs(orig-pred)/orig))
     #print('#'*70,'Accuracy:', 100-MAPE)
     return(100-MAPE)
@@ -57,6 +54,7 @@ def accuracy_score(orig, pred):
 
 
 def standardise_values(X):
+    """Return a standardised version of the predictors."""
     # Both StandardScaler and MinMaxScaler give similar results
     #predictor_scaler = StandardScaler()
     predictor_scaler = MinMaxScaler()
@@ -92,6 +90,8 @@ def get_xy_data():
 
 
 def evaluate_model_accuracy(reg_model, X, y, predictors, target_variable):
+    """Train 70% of the data with the specified model, then print information on the accuracy of the model."""
+
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
 
     # Printing all the parameters of Linear regression
@@ -107,16 +107,16 @@ def evaluate_model_accuracy(reg_model, X, y, predictors, target_variable):
     ###########################################################################
     print('\n##### Model Validation and Accuracy Calculations ##########')
 
-    # Printing some sample values of prediction
+    # Create a Dataframe to store the predictions
     predicted_column = 'predicted_'+target_variable
     testing_data_results = pd.DataFrame(data=X_test, columns=predictors)
     testing_data_results[target_variable] = y_test
     testing_data_results[predicted_column] = prediction
 
-    # Printing sample prediction values
+    # Print sample prediction values
     print(testing_data_results.head())
 
-    # Calculating the error for each row
+    # Calculate the error of each prediction, and store this in a new column
     prediction_difference = abs(testing_data_results[target_variable] - testing_data_results[predicted_column])
     testing_data_results['APE'] = 100 * prediction_difference / testing_data_results[target_variable]
 
@@ -128,7 +128,7 @@ def evaluate_model_accuracy(reg_model, X, y, predictors, target_variable):
     print('Mean Accuracy on test data:', accuracy) # Can be negative sometimes due to outlier
     print('Median Accuracy on test data:', median_accuracy)
 
-    # Custom Scoring MAPE calculation
+    # Custom Scoring accuracy calculation
     custom_scoring = make_scorer(accuracy_score, greater_is_better=True)
 
     # Running 10-Fold Cross validation on a given algorithm
@@ -151,8 +151,8 @@ def plot_feature_importance():
 
 
 def test_models():
-    # Tree regressor is most accurate
-
+    """Train the data using three different models: Linear regression, decision tree regressor, and random forest regressor."""
+    # Note: Tree regressor is most accurate
     X, y, predictors, target_variable = get_xy_data()
     print("Testing linear regression model")
     reg_model = LinearRegression()
@@ -166,16 +166,9 @@ def test_models():
     reg_model = RandomForestRegressor(max_depth=4, n_estimators=400,criterion='friedman_mse')
     evaluate_model_accuracy(reg_model, X, y, predictors, target_variable)
 
-    # Choosing Decision Tree with 6 level as the weak learner
-    """
-    print("Testing ADA Boost Regressor")
-    DTR=DecisionTreeRegressor(max_depth=3)
-    reg_model = AdaBoostRegressor(n_estimators=100, base_estimator=DTR ,learning_rate=0.04)
-    evaluate_model_accuracy(reg_model, X, y, predictors, target_variable)
-    """
-
 
 def test_final_model():
+    """Test the final model using only the most important predictors and print its results."""
     # The most important predictors based on the results of plot_feature_importance()
     important_predictors = ["bedrooms", "accommodates", "bathrooms"]
     # The tree regressor was the most accurate out of the ones tested
@@ -194,6 +187,7 @@ def test_final_model():
 
 
 def train_final_model():
+    """Return a model that has been trained using all of the data with only the most important predictors."""
     important_predictors = ["bedrooms", "accommodates", "bathrooms"]
     # The tree regressor was the most accurate out of the ones tested
     reg_model = DecisionTreeRegressor(max_depth=5,criterion='friedman_mse')
@@ -213,12 +207,13 @@ def train_final_model():
 
 
 def save_model_to_file(model):
+    """Save the model to a picle file for later use."""
     with open('final_model.pkl', 'wb') as file:
         pickle.dump(model, file)
 
 
 def predict_result(input_data):
-    """Return a dataframe with multiple predictions of log_price from the input data."""
+    """Return a dataframe with multiple predictions of log_price based on the input data."""
     predictors = ["bedrooms", "accommodates", "bathrooms"]
     X = input_data[predictors]
     X = standardise_values(X)
@@ -242,6 +237,7 @@ def generate_prediction(bedrooms, accommodates, bathrooms):
 
 
 def test_sample_data():
+    """Print the predictions of some made up sample data."""
     sample_data = pd.DataFrame(data = [[3, 4, 2], [1, 1, 1], [4, 6, 2.5]], columns=["bedrooms", "accommodates", "bathrooms"])
     print(predict_result(sample_data))
 

@@ -33,6 +33,7 @@ def anova_test(df, target_variable, categorical_predictors):
 
 
 def get_correlated_predictors():
+    """Return a list of predictors that are correlated to the target variable."""
     df = get_formatted_dataframe()
     selected_continous_predictors = correlation_analysis(df)
     categorical_predictors = ["beds", "bedrooms", "bathrooms", "accommodates", "cancellation_policy", "host_identity_verified", "instant_bookable", "cleaning_fee"]
