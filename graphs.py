@@ -1,24 +1,24 @@
-
+"""Each function in this file will plot a graph. Run the file to show all graphs."""
 from plotting_helpers import *
 
 
 def log_price_distribution(df):
+    """Plot the distribution of log_price"""
     df["log_price"].plot(kind="hist")
     plt.xlabel("Log Price")
     plt.show()
 
 
+# The following three functions plot histograms of the distributions of various columns into subplots.
 def continous_dist1(df):
     to_plot = ["number_of_reviews", "review_scores_rating", "host_response_rate"]
     plot_histograms(df, to_plot, 2, 2)
     plt.show()
 
-
 def continous_dist2(df):
     to_plot = ["host_since", "last_review", "first_review"]
     plot_year_bargraphs(df, to_plot, 2, 2)
     plt.show()
-
 
 def continous_dist3(df):
     to_plot = ["latitude", "longitude"]
@@ -26,11 +26,15 @@ def continous_dist3(df):
     plt.show()
 
 
+# The following two functions plot bar graphs that show the distribution of the categorical variables.
 def visual_analysis_categorical(df):
     df.groupby("cancellation_policy")["cancellation_policy"].count().plot(kind="bar")
     plt.tight_layout(h_pad=5.0)
     plt.show()
 
+def visual_analysis_categorical2(df):
+    plot_bar_graphs(df, ["host_has_profile_pic", "host_identity_verified", "instant_bookable", "cleaning_fee"], 2, 2)
+    plt.show()
 
 """
 def outlier_removal_analysis_accommodates(df):
@@ -85,18 +89,28 @@ def box_plots(df):
         plt.show()
     
 
+def show_all_plots(df):
+    """
+    Show all plots one after the other. The next plot will be shown when the window is closed. 
+    
+    To stop showing more plots, force quit the python program.
+    """
+    handle_null_values(df)
+    log_price_distribution(df)
+    continous_dist1(df)
+    continous_dist2(df)
+    continous_dist3(df)
+    visual_analysis_categorical(df)
+    visual_analysis_categorical2(df)
+    outlier_removal_graphs(df)
+    scatter_host_response_rate(df)
+    scatter_first_review(df)
+    scatter_last_review(df)
+    scatter_review_scores_rating(df)
+    box_plots(df)
+
 
 if __name__ == "__main__":
     df = get_formatted_dataframe()
-    #handle_all_outliers(df)
-    handle_null_values(df)
-    #outlier_removal_analysis_accommodates(df)
-    #outlier_removal_analysis_review_scores_rating(df)
-    #outlier_removal_analysis_host_response_rate(df)
-    #log_price_distribution(df)
-    #continous_dist3(df)
-    #visual_analysis_categorical(df)
-    #scatter_last_review(df)
-    #scatter_review_scores_rating(df)
-    box_plots(df)
-    #outlier_removal_graphs(df)
+    
+    show_all_plots(df)

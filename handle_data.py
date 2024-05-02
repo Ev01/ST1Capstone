@@ -5,7 +5,7 @@ import numpy as np
 
 
 def get_formatted_dataframe():
-    """Reads the csv and cleans it up so that it can be graphed/analysed"""
+    """Read the csv and cleans it up so that it can be graphed/analysed."""
     df = pd.read_csv("data.csv")
     # Remove any duplicate rows in the dataset
     df.drop_duplicates(inplace=True)
