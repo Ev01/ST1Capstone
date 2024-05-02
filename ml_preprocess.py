@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.linear_model import LinearRegression
@@ -141,7 +142,20 @@ def evaluate_model_accuracy(reg_model, X, y, predictors, target_variable):
     
 
 
+def plot_feature_importance():
+    """Plot the 10 most important features using DecisionTreeRegressor"""
+    #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
+    X, y, predictors, target_variable = get_xy_data()
+    reg_model = DecisionTreeRegressor(max_depth=5,criterion='friedman_mse')
+    XGB = reg_model.fit(X, y)
+    feature_importances = pd.Series(XGB.feature_importances_, index=predictors)
+    feature_importances.nlargest(10).plot(kind='barh')
+    plt.show()
+
+
 def test_models():
+    # Tree regressor is most accurate
+
     X, y, predictors, target_variable = get_xy_data()
     print("Testing linear regression model")
     reg_model = LinearRegression()
@@ -167,4 +181,5 @@ def test_models():
 
 
 if __name__ == "__main__":
-    test_models()
+    #test_models()
+    plot_feature_importance()
