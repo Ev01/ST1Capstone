@@ -39,29 +39,6 @@ def get_outlier_lower_limit_sd(series):
     # Any value below this number is considered an outlier
     return series.mean() - series.std() * 3
 
-"""
-def get_outlier_limits_iqr(series):
-    q3 = series.quantile(0.75)
-    q1 = series.quantile(0.25)
-    iqr = q3 - q1
-    lower_limit = q1 - iqr * 1.5
-    upper_limit = q3 + iqr * 1.5
-    return lower_limit, upper_limit
-
-    
-def is_outlier_iqr(series):
-    lower_limit, upper_limit = get_outlier_limits_iqr(series)
-    print(f"upper limit: {upper_limit}")
-    print(f"lower limit: {lower_limit}")
-
-    outliers = (series >= upper_limit) | (series <= lower_limit)
-    return outliers
-
-    
-
-def get_outliers_iqr(series):
-    return series.loc[is_outlier_iqr(series)]
-"""
 
 def is_outlier_sd(series):
     """Return a series with each value replaced with True if it is an outlier, or False if it isn't."""
@@ -88,6 +65,7 @@ def outliers_to_limit(df, column, convert_to_int=True):
     Setting convert_to_int to True will convert the upper and lower limits to ints. This should be 
     used when the column is categorical.
     """
+    # Anything above the upper limit or below the lower limit is considered an outlier
     upper_limit = get_outlier_upper_limit_sd(df[column])
     lower_limit = get_outlier_lower_limit_sd(df[column])
     if convert_to_int:

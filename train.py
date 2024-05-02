@@ -1,3 +1,5 @@
+"""Functions related to training the model. Run the file to test all the models and then train and save the final model."""
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -68,7 +70,7 @@ def evaluate_model_accuracy(reg_model, X, y, predictors, target_variable):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
 
     # Printing all the parameters of Linear regression
-    print(reg_model)
+    print("Model Parameters:", reg_model)
 
     # Creating the model on Training Data
     LREG = reg_model.fit(X_train,y_train)
@@ -117,15 +119,16 @@ def test_models():
     # Note: Tree regressor is most accurate
     predictors = correlated_predictors
     df, X, y = get_processed_data(predictors=predictors)
-    print("Testing linear regression model")
+    print("======== Testing linear regression model ========\n")
     reg_model = LinearRegression()
     evaluate_model_accuracy(reg_model, X, y, predictors, TARGET_VARIABLE)
 
-    print("Testing Tree Regressor Model")
+    print("======== Testing Tree Regressor Model ========\n")
     reg_model = DecisionTreeRegressor(max_depth=5,criterion='friedman_mse')
     evaluate_model_accuracy(reg_model, X, y, predictors, TARGET_VARIABLE)
 
-    print("Testing Random Forest Regressor")
+    print("======== Testing Random Forest Regressor ========\n")
+    # Note: this model can take a long time to test
     reg_model = RandomForestRegressor(max_depth=4, n_estimators=400,criterion='friedman_mse')
     evaluate_model_accuracy(reg_model, X, y, predictors, TARGET_VARIABLE)
 
@@ -194,10 +197,15 @@ def test_sample_data():
 
 
 if __name__ == "__main__":
+    print("================ Testing All Models ================\n")
     test_models()
-    #plot_feature_importance()
-    #test_final_model()
-    #final_model = train_final_model()
-    #save_model_to_file(final_model)
-    #test_sample_data()
+    print("Tree regressor is most accurate model, so this will be used for the final model.\n")
+    print("================ Testing Final Model ================\n")
+    test_final_model()
+    print("================ Training Final Model With All Data ================\n")
+    final_model = train_final_model()
+    print("================ Saving Model to file 'final_model.pkl' ================\n")
+    save_model_to_file(final_model)
+    print("================ Testing Model with Sample Data ================\n")
+    test_sample_data()
     #generate_prediction(3, 2, 4)

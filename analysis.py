@@ -5,10 +5,12 @@ from handle_data import *
 
 def correlation_analysis(df):
     """Return a list of the continous predictors that are correlated to the target variable."""
+    print("##### Correlation Analysis Results #####")
     correlation_data = df[["host_response_rate", "first_review", "last_review", "review_scores_rating", "log_price"]].corr()["log_price"]
     selected_predictors = correlation_data.loc[abs(correlation_data) > 0.5]
     selected_predictors = list(selected_predictors.index)
     selected_predictors.remove("log_price")
+    print("selected predictors: ", selected_predictors)
     return selected_predictors
 
 
