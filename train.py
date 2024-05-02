@@ -16,33 +16,8 @@ import pickle
 import analysis
 import handle_data
 
-
-def categorical_to_numeric(df, column, unique_values):
-    """Convert each unique value in the column to its index in unique_values."""
-    for i, value in enumerate(unique_values):
-        df.loc[df[column] == value, column] = i
-
-
-def ml_preprocess(df):
-    """Convert the values of all columns into numerical values."""
-
-    # Convert all values of super_strict_30 or super_strict_60 in cancellation_policy to strict.
-    df.loc[(df["cancellation_policy"] == "super_strict_30") | (df["cancellation_policy"] == "super_strict_60"), "cancellation_policy"] = "strict"
-
-    predictors = analysis.get_correlated_predictors()
-    
-    # Remove all columns that are not a selected predictor or target variable
-    df = df[[*predictors, "log_price"]]
-    
-    # Convert string values to numeric values
-    categorical_to_numeric(df, "cancellation_policy", ["flexible", "moderate", "strict"])
-    categorical_to_numeric(df, "host_identity_verified", ["f" , "t"])
-    categorical_to_numeric(df, "instant_bookable", ["f", "t"])
-    
-    # Convert cleaning fee from boolean to numeric
-    df["cleaning_fee"] = df["cleaning_fee"].astype(int)
-
-    return df, predictors
+TARGET_VARIABLE = "log_price"
+correlated_predictors = analysis.get_correlated_predictors()
 
 
 def accuracy_score(orig, pred):
@@ -65,28 +40,26 @@ def standardise_values(X):
 
 
 
-def get_processed_dataframe():
+def get_processed_data(predictors=[]):
+    """Read the dataframe and process it completely for use with machine learning."""
     df = handle_data.get_formatted_dataframe()
     handle_data.handle_all_outliers(df)
     handle_data.handle_null_values(df)
-    df, predictors = ml_preprocess(df)
+    df = handle_data.convert_columns_to_numeric(df)
 
-    return df
-
-
-def get_xy_data():
-    df = get_processed_dataframe()
-    predictors = analysis.get_correlated_predictors()
-    target_variable = "log_price"
+    # If a list of predictors has not been assigned, default to the correlated predictors.
+    if not predictors:
+        predictors = correlated_predictors
+    
+    # Remove all columns that are not a selected predictor or target variable
+    df = df[[*predictors, TARGET_VARIABLE]]
 
     X = df[predictors].values
-    y = df[target_variable].values
+    y = df[TARGET_VARIABLE].values
 
     X = standardise_values(X)
 
-    return X, y, predictors, target_variable
-
-
+    return df, X, y
 
 
 def evaluate_model_accuracy(reg_model, X, y, predictors, target_variable):
@@ -136,35 +109,25 @@ def evaluate_model_accuracy(reg_model, X, y, predictors, target_variable):
     accuracy_values = cross_val_score(reg_model, X , y, cv=10, scoring=custom_scoring)
     print('\nAccuracy values for 10-fold Cross Validation:\n',accuracy_values)
     print('\nFinal Average Accuracy of the model:', round(accuracy_values.mean(),2))
-    
 
-
-def plot_feature_importance():
-    """Plot the 10 most important features using DecisionTreeRegressor"""
-    #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
-    X, y, predictors, target_variable = get_xy_data()
-    reg_model = DecisionTreeRegressor(max_depth=5,criterion='friedman_mse')
-    XGB = reg_model.fit(X, y)
-    feature_importances = pd.Series(XGB.feature_importances_, index=predictors)
-    feature_importances.nlargest(10).plot(kind='barh')
-    plt.show()
 
 
 def test_models():
     """Train the data using three different models: Linear regression, decision tree regressor, and random forest regressor."""
     # Note: Tree regressor is most accurate
-    X, y, predictors, target_variable = get_xy_data()
+    predictors = correlated_predictors
+    df, X, y = get_processed_data(predictors=predictors)
     print("Testing linear regression model")
     reg_model = LinearRegression()
-    evaluate_model_accuracy(reg_model, X, y, predictors, target_variable)
+    evaluate_model_accuracy(reg_model, X, y, predictors, TARGET_VARIABLE)
 
     print("Testing Tree Regressor Model")
     reg_model = DecisionTreeRegressor(max_depth=5,criterion='friedman_mse')
-    evaluate_model_accuracy(reg_model, X, y, predictors, target_variable)
+    evaluate_model_accuracy(reg_model, X, y, predictors, TARGET_VARIABLE)
 
     print("Testing Random Forest Regressor")
     reg_model = RandomForestRegressor(max_depth=4, n_estimators=400,criterion='friedman_mse')
-    evaluate_model_accuracy(reg_model, X, y, predictors, target_variable)
+    evaluate_model_accuracy(reg_model, X, y, predictors, TARGET_VARIABLE)
 
 
 def test_final_model():
@@ -173,16 +136,10 @@ def test_final_model():
     important_predictors = ["bedrooms", "accommodates", "bathrooms"]
     # The tree regressor was the most accurate out of the ones tested
     reg_model = DecisionTreeRegressor(max_depth=5,criterion='friedman_mse')
-    target_variable = "log_price"
+    #target_variable = "log_price"
 
-    df = get_processed_dataframe()
-    # Only keep the important predictors
-    df = df[[*important_predictors, target_variable]]
-    X = df[important_predictors].values
-    y = df[target_variable].values
-
-    X = standardise_values(X)
-    evaluate_model_accuracy(reg_model, X, y, important_predictors, target_variable)
+    df, X, y = get_processed_data(predictors=important_predictors)
+    evaluate_model_accuracy(reg_model, X, y, important_predictors, TARGET_VARIABLE)
 
 
 
@@ -191,15 +148,9 @@ def train_final_model():
     important_predictors = ["bedrooms", "accommodates", "bathrooms"]
     # The tree regressor was the most accurate out of the ones tested
     reg_model = DecisionTreeRegressor(max_depth=5,criterion='friedman_mse')
-    target_variable = "log_price"
+    #target_variable = "log_price"
 
-    df = get_processed_dataframe()
-    # Only keep the important predictors
-    df = df[[*important_predictors, target_variable]]
-    X = df[important_predictors].values
-    y = df[target_variable].values
-
-    X = standardise_values(X)
+    df, X, y = get_processed_data(important_predictors)
 
     # Train model using all data
     final_model = reg_model.fit(X, y)
@@ -243,10 +194,10 @@ def test_sample_data():
 
 
 if __name__ == "__main__":
-    #test_models()
+    test_models()
     #plot_feature_importance()
     #test_final_model()
     #final_model = train_final_model()
     #save_model_to_file(final_model)
     #test_sample_data()
-    generate_prediction(3, 2, 4)
+    #generate_prediction(3, 2, 4)

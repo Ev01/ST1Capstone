@@ -143,3 +143,26 @@ def handle_null_values(df):
     fill_na_with_median(df, "host_since")
 
 
+def categorical_to_numeric(df, column, unique_values):
+    """Convert each unique value in the column to its index in unique_values."""
+    for i, value in enumerate(unique_values):
+        df.loc[df[column] == value, column] = i
+
+
+def convert_columns_to_numeric(df):
+    """Convert the values of all columns into numerical values."""
+
+    # Convert all values of super_strict_30 or super_strict_60 in cancellation_policy to strict.
+    df.loc[(df["cancellation_policy"] == "super_strict_30") | (df["cancellation_policy"] == "super_strict_60"), "cancellation_policy"] = "strict"
+    
+    # Convert string values to numeric values
+    categorical_to_numeric(df, "cancellation_policy", ["flexible", "moderate", "strict"])
+    categorical_to_numeric(df, "host_identity_verified", ["f" , "t"])
+    categorical_to_numeric(df, "instant_bookable", ["f", "t"])
+    
+    # Convert cleaning fee from boolean to numeric
+    df["cleaning_fee"] = df["cleaning_fee"].astype(int)
+
+    return df
+
+

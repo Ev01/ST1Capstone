@@ -17,7 +17,7 @@ def anova_test(df, target_variable, categorical_predictors):
     """Return a list of categorical predictors that pass the anova test (and are related to the target variable)"""
     # Creating an empty list of final selected predictors
     selected_predictors = []
-    #print('##### ANOVA Results ##### \n')
+    print('##### ANOVA Results ##### \n')
     for predictor in categorical_predictors:
         category_groups = df.groupby(predictor)[target_variable].apply(list)
         anova_results = f_oneway(*category_groups)

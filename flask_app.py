@@ -1,6 +1,6 @@
 from flask import Flask, request
 
-from ml_preprocess import generate_prediction
+from train import generate_prediction
 
 
 app = Flask(__name__)

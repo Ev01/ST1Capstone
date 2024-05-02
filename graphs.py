@@ -1,5 +1,9 @@
 """Each function in this file will plot a graph. Run the file to show all graphs."""
+from sklearn.tree import DecisionTreeRegressor
+
 from plotting_helpers import *
+import analysis
+from train import get_processed_data
 
 
 def log_price_distribution(df):
@@ -87,7 +91,19 @@ def box_plots(df):
     for i, column in enumerate(categorical_columns):
         df.boxplot(column="log_price", by=column, figsize=(10,5))
         plt.show()
-    
+
+
+def plot_feature_importance():
+    """Plot the 10 most important features using DecisionTreeRegressor"""
+    #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
+    predictors = analysis.get_correlated_predictors()
+    df, X, y = get_processed_data(predictors=predictors)
+    reg_model = DecisionTreeRegressor(max_depth=5,criterion='friedman_mse')
+    XGB = reg_model.fit(X, y)
+    feature_importances = pd.Series(XGB.feature_importances_, index=predictors)
+    feature_importances.nlargest(10).plot(kind='barh')
+    plt.show()
+
 
 def show_all_plots(df):
     """
@@ -108,9 +124,11 @@ def show_all_plots(df):
     scatter_last_review(df)
     scatter_review_scores_rating(df)
     box_plots(df)
+    plot_feature_importance()
 
 
 if __name__ == "__main__":
     df = get_formatted_dataframe()
     
     show_all_plots(df)
+    
