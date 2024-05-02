@@ -16,8 +16,11 @@ def get_formatted_dataframe():
     df["host_since"] = pd.to_datetime(df["host_since"])
     df["last_review"] = pd.to_datetime(df["last_review"])
     df["first_review"] = pd.to_datetime(df["first_review"])
-    return df
 
+    # Drop all rows where the log_price is 0 (in this dataset there is only one)
+    df = df.drop(list(df.loc[df["log_price"] == 0].index))
+
+    return df
 
 
 def print_null_percentage(df):
@@ -110,10 +113,11 @@ def dropna_in_column(df, attribute):
 
 
 def handle_null_values(df):
-    dropna_in_column(df, "first_review")
-    dropna_in_column(df, "last_review")
-    dropna_in_column(df, "review_scores_rating")
-    dropna_in_column(df, "host_response_rate")
+    # As we are not using these columns, we do not need to drop the invalid data anymore
+    #dropna_in_column(df, "first_review")
+    #dropna_in_column(df, "last_review")
+    #dropna_in_column(df, "review_scores_rating")
+    #dropna_in_column(df, "host_response_rate")
 
     fill_na_with_mode(df, "bathrooms")
     fill_na_with_mode(df, "host_identity_verified")
