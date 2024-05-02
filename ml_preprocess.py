@@ -7,6 +7,9 @@ from sklearn import metrics
 from sklearn.metrics import make_scorer
 # Importing cross validation function from sklearn
 from sklearn.model_selection import cross_val_score
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import AdaBoostRegressor
 
 
 import analysis
@@ -50,8 +53,19 @@ def accuracy_score(orig, pred):
 
 #def ev
 
+def standardise_values(X):
+    # Choose either standardization or Normalization
+    # Choose between standardization and MinMAx normalization
+    #predictor_scaler = StandardScaler()
+    predictor_scaler = MinMaxScaler()
+    # Storing the fit object for later reference
+    predictor_scaler_fit = predictor_scaler.fit(X)
+    # Generating the standardized values of X
+    X = predictor_scaler_fit.transform(X)
+    return X
 
-def ml():
+
+def get_xy_data():
     df = handle_data.get_formatted_dataframe()
     handle_data.handle_all_outliers(df)
     handle_data.handle_null_values(df)
@@ -61,29 +75,26 @@ def ml():
     X = df[predictors].values
     y = df[target_variable].values
 
-    #x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=428)
-
-    ### Sandardization of data ###
-
-    # Choose either standardization or Normalization
-    # Choose between standardization and MinMAx normalization
-    #predictor_scaler = StandardScaler()
-    predictor_scaler = MinMaxScaler()
-    # Storing the fit object for later reference
-    predictor_scaler_fit = predictor_scaler.fit(X)
-    # Generating the standardized values of X
-    X = predictor_scaler_fit.transform(X)
+    X = standardise_values(X)
+    
     # Split the data into training and testing set
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
+    #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
     # Sanity check for the sampled data
-    print(X_train.shape)
-    print(y_train.shape)
-    print(X_test.shape)
-    print(y_test.shape)
+    #print(X_train.shape)
+    #print(y_train.shape)
+    #print(X_test.shape)
+    #print(y_test.shape)
 
+    return X, y, predictors, target_variable
+
+
+
+
+def evaluate_model_accuracy(reg_model, X, y, predictors, target_variable):
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
 
     #Multiple Linear Regression
-    reg_model = LinearRegression()
+    #reg_model = LinearRegression()
 
     # Printing all the parameters of Linear regression
     print(reg_model)
@@ -130,8 +141,30 @@ def ml():
     
 
 
+def test_models():
+    X, y, predictors, target_variable = get_xy_data()
+    print("Testing linear regression model")
+    reg_model = LinearRegression()
+    evaluate_model_accuracy(reg_model, X, y, predictors, target_variable)
+
+    print("Testing Tree Regressor Model")
+    reg_model = DecisionTreeRegressor(max_depth=5,criterion='friedman_mse')
+    evaluate_model_accuracy(reg_model, X, y, predictors, target_variable)
+
+    print("Testing Random Forest Regressor")
+    reg_model = RandomForestRegressor(max_depth=4, n_estimators=400,criterion='friedman_mse')
+    evaluate_model_accuracy(reg_model, X, y, predictors, target_variable)
+
+    # Choosing Decision Tree with 6 level as the weak learner
+    """
+    print("Testing ADA Boost Regressor")
+    DTR=DecisionTreeRegressor(max_depth=3)
+    reg_model = AdaBoostRegressor(n_estimators=100, base_estimator=DTR ,learning_rate=0.04)
+    evaluate_model_accuracy(reg_model, X, y, predictors, target_variable)
+    """
+
 
 
 
 if __name__ == "__main__":
-    ml()
+    test_models()
