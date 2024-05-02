@@ -225,9 +225,29 @@ def save_model_to_file(model):
         pickle.dump(model, file)
 
 
+def predict_result(input_data):
+    predictors = ["bedrooms", "accommodates", "bathrooms"]
+    X = input_data[predictors]
+    X = standardise_values(X)
+
+    with open('final_model.pkl', 'rb') as file:
+        prediction_model = pickle.load(file)
+    
+    # Genrating Predictions
+    prediction = prediction_model.predict(X)
+    prediction_result = pd.DataFrame(prediction, columns=['Prediction'])
+    return prediction_result
+
+
+def test_sample_data():
+    sample_data = pd.DataFrame(data = [[3, 4, 2], [1, 1, 1], [4, 6, 2.5]], columns=["bedrooms", "accommodates", "bathrooms"])
+    print(predict_result(sample_data))
+
+
 if __name__ == "__main__":
     #test_models()
     #plot_feature_importance()
     #test_final_model()
-    final_model = train_final_model()
-    save_model_to_file(final_model)
+    #final_model = train_final_model()
+    #save_model_to_file(final_model)
+    test_sample_data()
