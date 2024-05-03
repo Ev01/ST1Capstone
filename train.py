@@ -30,12 +30,14 @@ def accuracy_score(orig, pred):
 
 
 
-def standardise_values(X):
+def standardise_values(X, all_data=None):
     """Return a standardised version of the predictors."""
     # Both StandardScaler and MinMaxScaler give similar results
     #predictor_scaler = StandardScaler()
+    if all_data is None:
+        all_data = X
     predictor_scaler = MinMaxScaler()
-    predictor_scaler_fit = predictor_scaler.fit(X)
+    predictor_scaler_fit = predictor_scaler.fit(all_data)
     # Generate the standardized values of X
     X = predictor_scaler_fit.transform(X)
     return X
@@ -59,7 +61,7 @@ def get_processed_data(predictors=[]):
     X = df[predictors].values
     y = df[TARGET_VARIABLE].values
 
-    X = standardise_values(X)
+    #X = standardise_values(X)
 
     return df, X, y
 
@@ -142,6 +144,7 @@ def test_final_model():
     #target_variable = "log_price"
 
     df, X, y = get_processed_data(predictors=important_predictors)
+    X = standardise_values(X)
     evaluate_model_accuracy(reg_model, X, y, important_predictors, TARGET_VARIABLE)
 
 
@@ -154,6 +157,7 @@ def train_final_model():
     #target_variable = "log_price"
 
     df, X, y = get_processed_data(important_predictors)
+    X = standardise_values(X)
 
     # Train model using all data
     final_model = reg_model.fit(X, y)
@@ -168,9 +172,14 @@ def save_model_to_file(model):
 
 def predict_result(input_data):
     """Return a dataframe with multiple predictions of log_price based on the input data."""
+    
+
     predictors = ["bedrooms", "accommodates", "bathrooms"]
-    X = input_data[predictors]
-    X = standardise_values(X)
+
+    all_X = get_processed_data(predictors)[1]
+
+    X = input_data[predictors].values
+    X = standardise_values(X, all_X)
 
     with open('final_model.pkl', 'rb') as file:
         prediction_model = pickle.load(file)
@@ -186,17 +195,18 @@ def generate_prediction(bedrooms, accommodates, bathrooms):
     input_data = pd.DataFrame(data=[[bedrooms, accommodates, bathrooms]], columns=["bedrooms", "accommodates", "bathrooms"])
     predictions = predict_result(input_data)
     # Return the first (and only) prediction
-    d = {"Prediction": float(predictions.values[0])}
-    return json.dumps(d)
+    print(predictions)
+    return predictions.to_json()
 
 
 def test_sample_data():
     """Print the predictions of some made up sample data."""
-    sample_data = pd.DataFrame(data = [[3, 4, 2], [1, 1, 1], [4, 6, 2.5]], columns=["bedrooms", "accommodates", "bathrooms"])
+    sample_data = pd.DataFrame(data = [[2, 2, 2], [1, 3, 4], [2, 3, 1.5]], columns=["bedrooms", "accommodates", "bathrooms"])
     print(predict_result(sample_data))
 
 
 if __name__ == "__main__":
+    
     print("================ Testing All Models ================\n")
     test_models()
     print("Tree regressor is most accurate model, so this will be used for the final model.\n")
@@ -207,5 +217,8 @@ if __name__ == "__main__":
     print("================ Saving Model to file 'final_model.pkl' ================\n")
     save_model_to_file(final_model)
     print("================ Testing Model with Sample Data ================\n")
+    
     test_sample_data()
-    #generate_prediction(3, 2, 4)
+    
+    #print(generate_prediction(bedrooms=3, accommodates=2, bathrooms=4))
+    #print(generate_prediction(1, 1, 1))
